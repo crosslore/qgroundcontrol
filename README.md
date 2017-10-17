@@ -1,9 +1,17 @@
-# QGroundControl
+# QGroundControl Ground Control Station
+
 ## Open Source Micro Air Vehicle Ground Control Station
 
+[![Releases](https://img.shields.io/github/release/mavlink/QGroundControl.svg)](https://github.com/mavlink/QGroundControl/releases)
+[![Travis Build Status](https://travis-ci.org/mavlink/qgroundcontrol.svg?branch=master)](https://travis-ci.org/mavlink/qgroundcontrol)
+[![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/crxcm4qayejuvh6c/branch/master?svg=true)](https://ci.appveyor.com/project/mavlink/qgroundcontrol)
+
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mavlink/qgroundcontrol?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+The license terms are set in the COPYING.md file.
 
 * Project:
-<http://qgroundcontrol.org>
+<http://qgroundcontrol.com>
 
 * Files:
 <http://github.com/mavlink/qgroundcontrol>
@@ -12,152 +20,77 @@
 <http://qgroundcontrol.org/credits>
 
 
-## Documentation
-For generating documentation, refer to /doc/README.
+## Obtaining source code
+Source code for QGroundControl is kept on GitHub: https://github.com/mavlink/qgroundcontrol.
+```
+git clone --recursive https://github.com/mavlink/qgroundcontrol.git
+```
+Each time you pull new source to your repository you should run `git submodule update` to get the latest submodules as well. Since QGroundControl uses submodules, using the zip file for source download will not work. You must use git.
 
-## Notes
-Please make sure to delete your build folder before re-building. Independent of which
-build system you use (this is not related to Qt or your OS) the dependency checking and
-cleaning is based on the current project revision. So if you change the project and don't remove the build folder before your next build, incremental building can leave you with stale object files.
+### User Manual
+https://docs.qgroundcontrol.com/en/
+
+### Supported Builds
+
+#### Native Builds
+QGroundControl builds are supported for OSX, Linux, Windows, iOS and Android. QGroundControl uses [Qt](http://www.qt.io) as its cross-platform support library and uses [QtCreator](http://doc.qt.io/qtcreator/index.html) as its default build environment.
+* OSX: OSX 10.7 or higher, 64 bit, clang compiler (IMPORTANT: XCode 8 requires a workaround described below)
+* Ubuntu: 64 bit, gcc compiler
+* Windows: Vista or higher, 32 bit, [Visual Studio 2015 compiler](http://www.visualstudio.com/downloads/download-visual-studio-vs#d-express-windows-desktop)
+* iOS: 8.0 and higher
+* Android: Jelly Bean (4.1) and higher. Standard QGC is built against ndk version 19.
+* Qt version: 5.9.1 ONLY
+
+###### Install QT
+You need to install Qt as described below instead of using pre-built packages from say, a Linux distribution, because QGroundControl needs access to private Qt headers.
+* Download the [Qt installer](http://www.qt.io/download-open-source)
+    * Make sure to install Qt version **5.9.1**. You will also need to install the Qt Speech package.
+    * Ubuntu: Set the downloaded file to executable using:`chmod +x`. Install to default location for use with ./qgroundcontrol-start.sh. If you install Qt to a non-default location you will need to modify qgroundcontrol-start.sh in order to run downloaded builds.
+    * Windows: Make sure to install VS 2015 32 bit package.
+
+###### Install additional packages:
+* Ubuntu: sudo apt-get install espeak libespeak-dev libudev-dev libsdl2-dev
+* Fedora: sudo dnf install espeak espeak-devel SDL2-devel SDL2 systemd-devel
+* Arch Linux: pacman -Sy espeak
+* Windows: [USB Driver](http://www.pixhawk.org/firmware/downloads) to connect to Pixhawk/PX4Flow/3DR Radio
+* Android: [Qt Android Setup](http://doc.qt.io/qt-5/androidgs.html)
+
+###### Building using Qt Creator
+
+* Launch Qt Creator and open the `qgroundcontrol.pro` project.
+* Select the appropriate kit for your needs:
+    * OSX: Desktop Qt 5.9.1 clang 64 bit
+    * Ubuntu: Desktop Qt 5.9.1 GCC bit
+    * Windows: Desktop Qt 5.9.1 MSVC2015 32bit
+    * Android: Android for armeabi-v7a (GCC 4.9, Qt 5.9.1)
+* Note: iOS builds must be built using xCode: http://doc.qt.io/qt-5/ios-support.html. Use Qt Creator to generate the XCode project (*Run Qmake* from the context menu).
+
+#### Vagrant
+
+A Vagrantfile is provided to build QGroundControl using the [Vagrant](https://www.vagrantup.com/) system. This will produce a native Linux build which can be run in the Vagrant Virtual Machine or on the host machine if it is compatible.
+
+* [Download](https://www.vagrantup.com/downloads.html) Vagrant
+* [Install](https://www.vagrantup.com/docs/getting-started/) Vagrant
+* From the root directory of the QGroundControl repository run "vagrant up"
+* To use the graphical environment run "vagrant reload"
+
+#### Additional build notes for all supported OS
+
+* Warnings as Errors: Specifying `CONFIG+=WarningsAsErrorsOn` will turn all warnings into errors which breaks the build. If you are working on a pull request you plan to submit to github for consideration, you should always run with this setting turned on, since it is required for all pull requests. NOTE: Putting this line into a file called "user_config.pri" in the top-level directory (same directory as `qgroundcontrol.pro`) will set this flag on all builds without interfering with the GIT history.
+* Parallel builds: For non Windows builds, you can use the '-j#' option to run parellel builds.
+* Location of built files: Individual build file results can be found in the `build_debug` or `build_release` directories. The built executable can be found in the `debug` or `release` directory.
+* If you get this error when running qgroundcontrol: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version 'GLIBCXX_3.4.20' not found. You need to either update to the latest gcc, or install the latest libstdc++.6 using: sudo apt-get install libstdc++6.
 
 ## Additional functionality
-QGroundcontrol has functionality that is dependent on the operating system and libraries installed by the user. The following sections describe these features, their dependencies, and how to disable/alter them during the build process. These features can be forcibly enabled/disabled by specifying additional values for variables either at the command line when calling `qmake` or in the `user_config.pri`. When calling `qmake` additional variables can be set using the syntax `VARIABLE="SPACE_SEPARATED_VALUES"`, which can be repeated for multiple variables. For example: `qmake DEFINES="DISABLE_QUPGRADE DISABLE_SPEECH" MAVLINK_CONF="sensesoar"` disables the QUpgrade widget, speech functionality, and sets the MAVLink dialect to sensesoar. These values can be more permanently specified by setting them in the `user_config.pri` file in the root directly. Copy the `user_config.pri.dist` file and name the copy `user_config.pri`, uncommenting the lines with the variables to modify and set their values as you desire.
-
-**NOTE:** Any variables specified at the command line call to `qmake` will override those set in `user_config.pri`.
-
-### QUpgrade
-QUpgrade is a submodule (a Git feature like a sub-repository) that contains extra functionality. It is compiled in by default if it has initialized and updated. It can be disabled by specifying `DISABLE_QUPGRADE` in the `DEFINES` variable.
-
-To include QUpgrade functionality run the following (only needs to be done once after cloning the qggroundcontrol git repository):
-  * `git submodule init`
-  * `git submodule update`
-
-The QUpgrade module relies on `libudev` on Linux platforms, so be sure to install the development version of that package.
-
-### Specifying MAVLink dialects
-The MAVLink dialect compiled by default by QGC is for the ardupilotmega. This will happen if no other dialects are specified. Setting the `MAVLINK_CONF` variable sets the dialects, with more than one specified in a space-separated list. Note that doing this may result in compilation errors as certain dialects may conflict with each other!
+QGroundControl has functionality that is dependent on the operating system and libraries installed by the user. The following sections describe these features, their dependencies, and how to disable/alter them during the build process. These features can be forcibly enabled/disabled by specifying additional values to qmake. 
 
 ### Opal-RT's RT-LAB simulator
-Integration with Opal-RT's RT-LAB simulator can be enabled on Windows by installing RT-LAB 7.2.4. This allows vehicles to be simulated in RT-LAB and communicate directly with QGC on the same computer as if the UAS was actually deployed. This support is enabled by default once the requisite RT-LAB software is installed. Disabling this can be done by adding `DISABLE_RTLAB` to the `DEFINES` variable.
-
-### Speech syntehsis
-QGroundcontrol can notify the controller of information via speech synthesis. This requires the `espeak` library on Linux. On Mac and Windows support is built in to the OS as of OS X 10.6 (Snow Leopard) and Windows Vista. This support is enabled by default on all platforms if the dependencies are met. Disabling this functionality can be done by adding `DISABLE_SPEECH` to the `DEFINES` variable.
-
-### 3D view
-The OpenSceneGraph libraries provide 3D rendering to the map overlays that QGC can provide.
-
-OpenSceneGraph support is built-in to Mac OS X. On Linux it is commonly available through the libopenscenegraph and libopenscenegraph-qt developer packages. Windows support does not currently exist. This functionality with be automatically built if the proper libraries are installed. Disabling this feature can be done by adding `DISABLE_OPEN_SCENE_GRAPH` to the `DEFINES` variable.
-
-### 3D mouse support
-Connexion's 3D mice are supported through the 3DxWARE driver available on Linux and Windows. Download and install the driver from 3DConnexion to enable support. This support is enabled by default with driver installation. To disable add `DISABLE_3DMOUSE` to the `DEFINES` variable.
+Integration with Opal-RT's RT-LAB simulator can be enabled on Windows by installing RT-LAB 7.2.4. This allows vehicles to be simulated in RT-LAB and communicate directly with QGC on the same computer as if the UAS was actually deployed. This support is enabled by default once the requisite RT-LAB software is installed. Disabling this can be done by adding `DEFINES+=DISABLE_RTLAB` to qmake.
 
 ### XBee support
 QGroundControl can talk to XBee wireless devices using their proprietary protocol directly on Windows and Linux platforms. This support is not necessary if you're not using XBee devices or aren't using their proprietary protocol. On Windows, the necessary dependencies are included in this repository and no additional steps are required. For Linux, change to the `libs/thirdParty/libxbee` folder and run `make;sudo make install` to install libxbee on your system (uninstalling can be done with a `sudo make uninstall`). `qmake` will automatically detect the library on Linux, so no other work is necessary.
 
-To disable XBee support you may add `DISABLE_XBEE` to the DEFINES argument.
+To disable XBee support you may add `DEFINES+=DISABLE_XBEE` to qmake.
 
-# Build on Mac OSX
-
-To build on Mac OSX (10.6 or later):
-- - -
-### Install SDL
-
-1. Download SDL from:  <http://www.libsdl.org/release/SDL-1.2.14.dmg>
-2. From the SDL disk image, copy the `sdl.framework` bundle to `/Library/Frameworks` directory (if you are not an admin copy to `~/Library/Frameworks`)
-
-### Install QT
-- - -
-1. Download Qt 4.8+ from: <http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-mac-opensource-4.8.5.dmg>
-2. Double click the package installer and follow instructions.
-3. If you are building on Mavericks or later you will need to modify /Library/Frameworks/QtCore.framework/Versions/4/Headers/qglobal.h to add the new 10.9 os version number. Search for MAC_OS_X_VERSION_10_8 to find the right spot.
-
-### Build QGroundControl
-- - -
- (use clang compiler - not gcc)
-
-1. From the terminal go to the `groundcontrol` directory
-2. Run `qmake qgroundcontrol.pro -r -spec unsupported/macx-clang CONFIG+=x86_64`
-3. Run `make -j4`
-
-
-# Build on Linux
-
-
-To build on Linux:
-- - -
-1. Install base dependencies (QT + phonon/webkit, SDL)
-  * For Ubuntu: `sudo apt-get install libqt4-dev libphonon-dev libphonon4 phonon-backend-gstreamer qtcreator libsdl1.2-dev build-essential libudev-dev`
-  * For Fedora: `sudo yum install qt qt-creator qt-webkit-devel phonon-devel SDL-devel SDL-static systemd-devel`
-  * For Arch Linux: `pacman -Sy qtwebkit phonon-qt4`
-
-2. **[OPTIONAL]** Install additional libraries
-  * For text-to-speech (espeak)
-	* For Ubuntu: `sudo apt-get install espeak libespeak-dev`
-	* For Fedora: `sudo yum install espeak espeak-devel`
-	* For Arch Linux: `pacman -Sy espeak`
-  * For 3D flight view (openscenegraph)
-	* For Ubuntu: `sudo apt-get install libopenscenegraph-dev`
-	* For Fedora: `sudo yum install OpenSceneGraph-qt-devel`
-
-3. Clone the repository
-  1. `cd PROJECTS_DIRECTORY`
-  2. git clone https://github.com/mavlink/qgroundcontrol.git
-  3. **[OPTIONAL]** For QUpgrade integration:
-	1. `cd qgroundcontrol`
-	2. `git submodule init`
-	3. `git submodule update`
-
-4. **[OPTIONAL]** Build and install XBee support:
-  1. ` cd libs/thirdParty/libxbee`
-  2. `make`
-  3. `sudo make install`
-
-5. Build QGroundControl:
-  1. Go back to root qgroundcontrol directory
-  2. `qmake`
-  3. `make`
-	* To enable parallel compilation add the `-j` argument with the number of cores you have. So on a quad-core processor: `make -j4`
-
-6. Run qgroundcontrol
-  1. `./release/qgroundcontrol`
-
-# Build on Windows
-- - -
-
-Steps for Visual Studio 2010:
-
-1. Download and install Visual Studio 2010 Express Edition (free) from here: <http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs.aspx>. Make sure to install VS 2010 SP1 as well to fix a linking error. Download from here: <http://www.microsoft.com/en-us/download/details.aspx?id=23691>.
-
-2. Download and install the Qt libraries for Windows (VS 2010 version) from here: <http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-win-opensource-4.8.5-vs2010.exe>
-
-3. Go to the QGroundControl folder and then to thirdParty/libxbee and build it following the instructions in win32.README
-
-4. Open the Qt Command Prompt program (should be in the Start Menu), navigate to the source folder of QGroundControl and create the Visual Studio project by typing `qmake -tp vc qgroundcontrol.pro`
-
-5. Now start Visual Studio 2010 and load qgroundcontrol.vcxproj.
-
-6. Compile and edit in Visual Studio. If you need to add new files, add them to qgroundcontrol.pro and re-run `qmake -tp vc qgroundcontrol.pro`
-
-7. If you already have VS 2008 that works as well. Download the appropriate Qt from here: <http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-win-opensource-4.8.5-vs2008.exe>. And use qgroundcontrol.vcproj instead.
-
-
-## Repository Layout
-The following describes the directory structure and important files in the QGroundControl repository
-
-Folders:
-
-  * data     - Miscellaneous support files.
-  * deploy   - Contains scripts for packaging QGC for all supported systems.
-  * doc      - Output directory for generated Doxygen documentation. See README contained within for details.
-  * files    - Contains miscellaneous data including vehicle models and autopilot-specific data files.
-  * images   - UI images.
-  * libs     - Library dependencies for QGC.
-  * qupgrade - Source file for the qupgrade, a firmware flashing utility for the APM. Compiled into QGC by default.
-  * qml      - QML source files for the project.
-  * src      - Source code for QGroundControl. Split into subfolders for communications, user interface, autopilot-specific files, etc.
-  * tools    - Additional tools for developers.
-
-Important files:
-
-  * qgroundcontrol.pro - Primary project file for building QGC. Open this in qtcreator or pass this to qmake on the command line to build QGC.
-  * qgcvideo.pro       - Builds a standalone executable for viewing UDP video streams from a vehicle.
+### Video Streaming
+Check the [Video Streaming](https://github.com/mavlink/qgroundcontrol/tree/master/src/VideoStreaming) directory for further instructions.

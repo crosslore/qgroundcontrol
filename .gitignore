@@ -1,3 +1,4 @@
+libs/lib/Frameworks/GStreamer.framework
 *.swp
 *.nfs
 CMakeFiles
@@ -14,6 +15,7 @@ bin/*.exe
 bin/*.txt
 bin/mac
 *pro.user*
+.qmake.stash
 qrc_*.cpp
 *.Debug
 *.Release
@@ -53,9 +55,13 @@ thirdParty/qserialport/bin/
 thirdParty/qserialport/lib/
 libs/thirdParty/libxbee/lib/
 GeneratedFiles/
+gstreamer-1.0-android*
 
 *.autosave
 .settings/
+
+# iOS Generated files
+ios/iOSForAppStore-Info.plist
 
 # Generated files
 moc_*
@@ -65,3 +71,16 @@ ui_*
 *.so*
 *.moc
 *.prl
+
+# android
+android/local.properties
+android/gradle.properties
+
+# doxygen
+src/html/
+src/latex/
+
+# vagrant
+.vagrant/
+Qt*-linux*.tar.*
+

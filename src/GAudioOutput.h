@@ -1,132 +1,41 @@
-/*=====================================================================
-
-PIXHAWK Micro Air Vehicle Flying Robotics Toolkit
-
-(c) 2009, 2010 PIXHAWK PROJECT  <http://pixhawk.ethz.ch>
-
-This file is part of the PIXHAWK project
-
-    PIXHAWK is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    PIXHAWK is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with PIXHAWK. If not, see <http://www.gnu.org/licenses/>.
-
-======================================================================*/
-
-/**
- * @file
- *   @brief Definition of audio output
+/****************************************************************************
  *
- *   @author Lorenz Meier <mavteam@student.ethz.ch>
+ *   (c) 2009-2016 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
- */
+ * QGroundControl is licensed according to the terms in the file
+ * COPYING.md in the root of the source code directory.
+ *
+ ****************************************************************************/
 
-#ifndef GAUDIOOUTPUT_H
-#define GAUDIOOUTPUT_H
+#pragma once
 
 #include <QObject>
 #include <QTimer>
+#include <QThread>
 #include <QStringList>
-#ifdef Q_OS_MAC
-#include <MediaObject>
-#include <AudioOutput>
-#endif
-#ifdef Q_OS_LINUX
-#include <phonon/MediaObject>
-#include <phonon/AudioOutput>
-#endif
-#ifdef Q_OS_WIN
-#include <Phonon/MediaObject>
-#include <Phonon/AudioOutput>
-#endif
+#include <QTextToSpeech>
 
-/* For Snow leopard and later
-#if defined Q_OS_MAC & defined QGC_SPEECH_ENABLED
-#include <NSSpeechSynthesizer.h>
-#endif
-   */
+#include "QGCToolbox.h"
 
+class QGCApplication;
 
-#if defined _MSC_VER && defined QGC_SPEECH_ENABLED
-// Documentation: http://msdn.microsoft.com/en-us/library/ee125082%28v=VS.85%29.aspx
-#include <sapi.h>
-#endif
-
-/**
- * @brief Audio Output (speech synthesizer and "beep" output)
- * This class follows the singleton design pattern
- * @see http://en.wikipedia.org/wiki/Singleton_pattern
- */
-class GAudioOutput : public QObject
+class GAudioOutput : public QGCTool
 {
     Q_OBJECT
 public:
-    /** @brief Get the singleton instance */
-    static GAudioOutput *instance();
-    /** @brief List available voices */
-    QStringList listVoices(void);
-    enum
-    {
-        VOICE_MALE = 0,
-        VOICE_FEMALE
-    } QGVoice;
+    GAudioOutput(QGCApplication* app, QGCToolbox* toolbox);
 
-    /** @brief Get the mute state */
-    bool isMuted();
+    static bool     getMillisecondString    (const QString& string, QString& match, int& number);
+    static QString  fixTextMessageForAudio  (const QString& string);
 
 public slots:
-    /** @brief Say this text if current output priority matches */
-    bool say(QString text, int severity = 1);
-    /** @brief Play alert sound and say notification message */
-    bool alert(QString text);
-    /** @brief Start emergency sound */
-    bool startEmergency();
-    /** @brief Stop emergency sound */
-    bool stopEmergency();
-    /** @brief Select female voice */
-    void selectFemaleVoice();
-    /** @brief Select male voice */
-    void selectMaleVoice();
-    /** @brief Play emergency sound once */
-    void beep();
-    /** @brief Notify about positive event */
-    void notifyPositive();
-    /** @brief Notify about negative event */
-    void notifyNegative();
-    /** @brief Mute/unmute sound */
-    void mute(bool mute);
+    bool            say                     (const QString& text);
 
-signals:
-    void mutedChanged(bool);
+private slots:
+    void            _stateChanged           (QTextToSpeech::State state);
 
 protected:
-#if defined Q_OS_MAC && defined QGC_SPEECH_ENABLED
-    //NSSpeechSynthesizer
-#endif
-#if defined Q_OS_LINUX && defined QGC_SPEECH_ENABLED
-    //cst_voice* voice; ///< The flite voice object
-#endif
-#if defined _MSC_VER && defined QGC_SPEECH_ENABLED
-    static ISpVoice *pVoice;
-#endif
-    int voiceIndex;   ///< The index of the flite voice to use (awb, slt, rms)
-    Phonon::MediaObject *m_media; ///< The output object for audio
-    Phonon::AudioOutput *m_audioOutput;
-    bool emergency;   ///< Emergency status flag
-    QTimer *emergencyTimer;
-    bool muted;
-private:
-    GAudioOutput(QObject *parent = NULL);
-    ~GAudioOutput();
+    QTextToSpeech*  _tts;
+    QStringList     _texts;
 };
-
-#endif // AUDIOOUTPUT_H
 
