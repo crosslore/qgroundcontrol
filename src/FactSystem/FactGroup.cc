@@ -105,6 +105,7 @@ void FactGroup::_addFact(Fact* fact, const QString& name)
         fact->setMetaData(_nameToFactMetaDataMap[name]);
     }
     _nameToFactMap[name] = fact;
+    _factNames.append(name);
 }
 
 void FactGroup::_addFactGroup(FactGroup* factGroup, const QString& name)
@@ -119,7 +120,7 @@ void FactGroup::_addFactGroup(FactGroup* factGroup, const QString& name)
 
 void FactGroup::_updateAllValues(void)
 {
-    foreach(Fact* fact, _nameToFactMap) {
+    for(Fact* fact: _nameToFactMap) {
         fact->sendDeferredValueChangedSignal();
     }
 }

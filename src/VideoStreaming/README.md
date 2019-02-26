@@ -21,6 +21,10 @@ To test using a test source on localhost, you can run this command:
 ```
 gst-launch-1.0 videotestsrc pattern=ball ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5600
 ```
+Or this one:
+```
+gst-launch-1.0 videotestsrc ! video/x-raw,width=640,height=480 ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5600
+```
 
 On the receiving end, if you want to test it from the command line, you can use something like:
 ```
@@ -31,7 +35,13 @@ gst-launch-1.0 udpsrc port=5600 caps='application/x-rtp, media=(string)video, cl
 
 Use apt-get to install GStreamer 1.0
 ```
-sudo apt-get install gstreamer1.0*
+list=$(apt-cache --names-only search ^gstreamer1.0-* | awk '{ print $1 }' | grep -v gstreamer1.0-hybris)
+```
+```
+sudo apt-get install $list
+```
+```
+sudo apt-get install libgstreamer-plugins-base1.0-dev
 ```
 
 The build system is setup to use pkgconfig and it will find the necessary headers and libraries automatically.
@@ -60,16 +70,19 @@ The installer places them under ~/Library/Developer/GStreamer/iPhone.sdk/GStream
 ### Android
 
 Binaries found in http://gstreamer.freedesktop.org/data/pkg/android
-Download the [gstreamer-1.0-android-armv7-1.5.2.tar.bz2](http://gstreamer.freedesktop.org/data/pkg/android/1.5.2/gstreamer-1.0-android-armv7-1.5.2.tar.bz2) archive (assuming you want the ARM V7 platform. For x86, replace `armv7` with `x86` accordingly). 
+Download the [gstreamer-1.0-android-universal-1.14.4.tar.bz2](https://gstreamer.freedesktop.org/data/pkg/android/1.14.4/gstreamer-1.0-android-universal-1.14.4.tar.bz2) archive. 
 
-Create a directory named "gstreamer-1.0-android-armv7-1.5.2" under the root qgroundcontrol directory (the same directory qgroundcontrol.pro is located). Extract the gstreamer tar file under this directory. That's where the build system will look for it. Make sure your archive tool doesn't create any additional top level directories. The structure after extracting the archive should look like this:
+Create a directory named "gstreamer-1.0-android-universal-1.14.4" under the root qgroundcontrol directory (the same directory qgroundcontrol.pro is located). Extract the downloaded archive under this directory. That's where the build system will look for it. Make sure your archive tool doesn't create any additional top level directories. The structure after extracting the archive should look like this:
 ```
 qgroundcontrol
-├── gstreamer-1.0-android-armv7-1.5.2
-│   ├── etc
-│   ├── include
-│   ├── lib
-│   └── share
+├── gstreamer-1.0-android-universal-1.14.4
+│   │
+│   ├──armv7
+│   │   ├── etc
+│   │   ├── include
+│   │   ├── lib
+│   │   └── share
+│   ├──x86
 ```
 ### Windows
 

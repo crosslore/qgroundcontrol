@@ -11,6 +11,7 @@
 #include "Vehicle.h"
 #include "QmlObjectListModel.h"
 #include "ParameterManager.h"
+#include "QGCApplication.h"
 #include "QGCMapPolygon.h"
 #include "QGCMapCircle.h"
 
@@ -20,6 +21,9 @@ GeoFenceManager::GeoFenceManager(Vehicle* vehicle)
     : _vehicle                  (vehicle)
     , _planManager              (vehicle, MAV_MISSION_TYPE_FENCE)
     , _firstParamLoadComplete   (false)
+#if defined(QGC_AIRMAP_ENABLED)
+    , _airspaceManager            (qgcApp()->toolbox()->airspaceManager())
+#endif
 {
     connect(&_planManager, &PlanManager::inProgressChanged,         this, &GeoFenceManager::inProgressChanged);
     connect(&_planManager, &PlanManager::error,                     this, &GeoFenceManager::error);
@@ -99,11 +103,8 @@ void GeoFenceManager::sendToVehicle(const QGeoCoordinate&   breachReturn,
         fenceItems.append(item);
     }
 
+    // Plan manager takes control of MissionItems, so no need to delete
     _planManager.writeMissionItems(fenceItems);
-
-    for (int i=0; i<fenceItems.count(); i++) {
-        fenceItems[i]->deleteLater();
-    }
 }
 
 void GeoFenceManager::removeAll(void)

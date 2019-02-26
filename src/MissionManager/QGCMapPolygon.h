@@ -24,8 +24,8 @@ class QGCMapPolygon : public QObject
     Q_OBJECT
 
 public:
-    QGCMapPolygon(QObject* parent = NULL);
-    QGCMapPolygon(const QGCMapPolygon& other, QObject* parent = NULL);
+    QGCMapPolygon(QObject* parent = nullptr);
+    QGCMapPolygon(const QGCMapPolygon& other, QObject* parent = nullptr);
 
     const QGCMapPolygon& operator=(const QGCMapPolygon& other);
 
@@ -40,6 +40,7 @@ public:
     Q_INVOKABLE void clear(void);
     Q_INVOKABLE void appendVertex(const QGeoCoordinate& coordinate);
     Q_INVOKABLE void removeVertex(int vertexIndex);
+    Q_INVOKABLE void appendVertices(const QList<QGeoCoordinate>& coordinates);
 
     /// Adjust the value for the specified coordinate
     ///     @param vertexIndex Polygon point index to modify (0-based)
@@ -52,11 +53,21 @@ public:
     /// Returns true if the specified coordinate is within the polygon
     Q_INVOKABLE bool containsCoordinate(const QGeoCoordinate& coordinate) const;
 
+    /// Offsets the current polygon edges by the specified distance in meters
+    Q_INVOKABLE void offset(double distance);
+
+    /// Loads a polygon from a KML/SH{ file
+    /// @return true: success
+    Q_INVOKABLE bool loadKMLOrSHPFile(const QString& file);
+
     /// Returns the path in a list of QGeoCoordinate's format
     QList<QGeoCoordinate> coordinateList(void) const;
 
     /// Returns the QGeoCoordinate for the vertex specified
-    QGeoCoordinate vertexCoordinate(int vertex) const;
+    Q_INVOKABLE QGeoCoordinate vertexCoordinate(int vertex) const;
+
+    /// Adjust polygon winding order to be clockwise (if needed)
+    Q_INVOKABLE void verifyClockwiseWinding(void);
 
     /// Saves the polygon to the json object.
     ///     @param json Json object to save to
@@ -68,6 +79,12 @@ public:
     ///     @param errorString Error string if return is false
     /// @return true: success, false: failure (errorString set)
     bool loadFromJson(const QJsonObject& json, bool required, QString& errorString);
+
+    /// Convert polygon to NED and return (D is ignored)
+    QList<QPointF> nedPolygon(void) const;
+
+    /// Returns the area of the polygon in meters squared
+    double area(void) const;
 
     // Property methods
 

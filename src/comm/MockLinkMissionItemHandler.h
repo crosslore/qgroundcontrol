@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   (c) 2009-2016 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ *   (c) 2009-2018 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,8 +8,7 @@
  ****************************************************************************/
 
 
-#ifndef MockLinkMissionItemHandler_H
-#define MockLinkMissionItemHandler_H
+#pragma once
 
 #include <QObject>
 #include <QMap>
@@ -88,6 +87,7 @@ private:
     void _handleMissionRequest(const mavlink_message_t& msg);
     void _handleMissionItem(const mavlink_message_t& msg);
     void _handleMissionCount(const mavlink_message_t& msg);
+    void _handleMissionClearAll(const mavlink_message_t& msg);
     void _requestNextMissionItem(int sequenceNumber);
     void _sendAck(MAV_MISSION_RESULT ackType);
     void _startMissionItemResponseTimer(void);
@@ -114,4 +114,3 @@ private:
     bool                _failWriteMissionCountFirstResponse;
 };
 
-#endif

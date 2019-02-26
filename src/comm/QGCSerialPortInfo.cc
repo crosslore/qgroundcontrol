@@ -185,6 +185,8 @@ QGCSerialPortInfo::BoardType_t QGCSerialPortInfo::_boardClassStringToType(const 
 
 bool QGCSerialPortInfo::getBoardInfo(QGCSerialPortInfo::BoardType_t& boardType, QString& name) const
 {
+    boardType = BoardTypeUnknown;
+
     _loadJsonData();
 
     if (isNull()) {
@@ -220,7 +222,6 @@ bool QGCSerialPortInfo::getBoardInfo(QGCSerialPortInfo::BoardType_t& boardType, 
         }
     }
 
-    boardType = BoardTypeUnknown;
     return false;
 }
 
@@ -251,8 +252,10 @@ QList<QGCSerialPortInfo> QGCSerialPortInfo::availablePorts(void)
 {
     QList<QGCSerialPortInfo>    list;
 
-    foreach(QSerialPortInfo portInfo, QSerialPortInfo::availablePorts()) {
-        list << *((QGCSerialPortInfo*)&portInfo);
+    for(QSerialPortInfo portInfo: QSerialPortInfo::availablePorts()) {
+        if (!isSystemPort(&portInfo)) {
+            list << *((QGCSerialPortInfo*)&portInfo);
+        }
     }
 
     return list;
@@ -269,6 +272,28 @@ bool QGCSerialPortInfo::isBootloader(void) const
     } else {
         return false;
     }
+}
+
+bool QGCSerialPortInfo::isSystemPort(QSerialPortInfo* port)
+{
+    // Known operating system peripherals that are NEVER a peripheral
+    // that we should connect to.
+
+    // XXX Add Linux (LTE modems, etc) and Windows as needed
+
+    // MAC OS
+    if (port->systemLocation().contains("tty.MALS")
+        || port->systemLocation().contains("tty.SOC")
+        || port->systemLocation().contains("tty.Bluetooth-Incoming-Port")
+        // We open these by their cu.usbserial and cu.usbmodem handles
+        // already. We don't want to open them twice and conflict
+        // with ourselves.
+        || port->systemLocation().contains("tty.usbserial")
+        || port->systemLocation().contains("tty.usbmodem")) {
+
+        return true;
+    }
+    return false;
 }
 
 bool QGCSerialPortInfo::canFlash(void)

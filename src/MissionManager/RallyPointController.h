@@ -61,7 +61,7 @@ signals:
     void loadComplete(void);
 
 private slots:
-    void _managerLoadComplete(const QList<QGeoCoordinate> rgPoints);
+    void _managerLoadComplete(void);
     void _managerSendComplete(bool error);
     void _managerRemoveAllComplete(bool error);
     void _setFirstPointCurrent(void);
@@ -73,6 +73,8 @@ private:
     QmlObjectListModel  _points;
     QObject*            _currentRallyPoint;
     bool                _itemsRequested;
+
+    static const int _jsonCurrentVersion = 2;
 
     static const char* _jsonFileTypeValue;
     static const char* _jsonPointsKey;

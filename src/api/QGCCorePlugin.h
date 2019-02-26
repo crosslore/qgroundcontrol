@@ -21,8 +21,6 @@
 ///     @brief Core Plugin Interface for QGroundControl
 ///     @author Gus Grubba <mavlink@grubba.com>
 
-// Work In Progress
-
 class QGCApplication;
 class QGCOptions;
 class QGCSettings;
@@ -33,6 +31,15 @@ class QQmlApplicationEngine;
 class Vehicle;
 class LinkInterface;
 class QmlObjectListModel;
+class VideoReceiver;
+class PlanMasterController;
+
+#if !defined(__mobile__)
+class QLayout;
+class QMainWindow;
+class QGCQmlWidgetHolder;
+#endif
+
 class QGCCorePlugin : public QGCTool
 {
     Q_OBJECT
@@ -51,6 +58,8 @@ public:
     Q_PROPERTY(QString              brandImageOutdoor       READ brandImageOutdoor                              CONSTANT)
     Q_PROPERTY(QmlObjectListModel*  customMapItems          READ customMapItems                                 CONSTANT)
 
+    Q_INVOKABLE bool guidedActionsControllerLogging(void) const;
+
     /// The list of settings under the Settings Menu
     /// @return A list of QGCSettings
     virtual QVariantList& settingsPages(void);
@@ -68,14 +77,15 @@ public:
     virtual QGCOptions* options(void);
 
     /// Allows the core plugin to override the visibility for a settings group
-    ///     @param name - Setting group name
+    ///     @param name - SettingsGroup name
     /// @return true: Show settings ui, false: Hide settings ui
     virtual bool overrideSettingsGroupVisibility(QString name);
 
     /// Allows the core plugin to override the setting meta data before the setting fact is created.
+    ///     @param settingsGroup - QSettings group which contains this item
     ///     @param metaData - MetaData for setting fact
     /// @return true: Setting should be visible in ui, false: Setting should not be shown in ui
-    virtual bool adjustSettingMetaData(FactMetaData& metaData);
+    virtual bool adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData);
 
     /// Return the resource file which contains the brand image for for Indoor theme.
     virtual QString brandImageIndoor(void) const { return QString(); }
@@ -87,7 +97,7 @@ public:
     virtual QString showAdvancedUIMessage(void) const;
 
     /// @return An instance of an alternate position source (or NULL if not available)
-    virtual QGeoPositionInfoSource* createPositionSource(QObject* parent) { Q_UNUSED(parent); return NULL; }
+    virtual QGeoPositionInfoSource* createPositionSource(QObject* parent) { Q_UNUSED(parent); return nullptr; }
 
     /// Allows a plugin to override the specified color name from the palette
     virtual void paletteOverride(QString colorName, QGCPalette::PaletteColorInfo_t& colorInfo);
@@ -98,6 +108,14 @@ public:
     /// Allows the plugin to override the creation of the root (native) window.
     virtual QQmlApplicationEngine* createRootWindow(QObject* parent);
 
+    /// Allows the plugin to have a chance to initialize the creation of the root (non native) window.
+#if !defined(__mobile__)
+    virtual QGCQmlWidgetHolder* createMainQmlWidgetHolder(QLayout* mainLayout, QWidget *parent);
+#endif
+
+    /// Allows the plugin to override the creation of VideoReceiver.
+    virtual VideoReceiver* createVideoReceiver(QObject* parent);
+
     /// Allows the plugin to see all mavlink traffic to a vehicle
     /// @return true: Allow vehicle to continue processing, false: Vehicle should not process message
     virtual bool mavlinkMessage(Vehicle* vehicle, LinkInterface* link, mavlink_message_t message);
@@ -105,6 +123,37 @@ public:
     /// Allows custom builds to add custom items to the FlightMap. Objects put into QmlObjectListModel
     /// should derive from QmlComponentInfo and set the url property.
     virtual QmlObjectListModel* customMapItems(void);
+
+    /// Allows custom builds to add custom items to the plan file. Either before the document is
+    /// created or after.
+    virtual void    preSaveToJson           (PlanMasterController* pController, QJsonObject& json) { Q_UNUSED(pController); Q_UNUSED(json); }
+    virtual void    postSaveToJson          (PlanMasterController* pController, QJsonObject& json) { Q_UNUSED(pController); Q_UNUSED(json); }
+
+    /// Same for the specific "mission" portion
+    virtual void    preSaveToMissionJson    (PlanMasterController* pController, QJsonObject& missionJson) { Q_UNUSED(pController); Q_UNUSED(missionJson); }
+    virtual void    postSaveToMissionJson   (PlanMasterController* pController, QJsonObject& missionJson) { Q_UNUSED(pController); Q_UNUSED(missionJson); }
+
+    /// Allows custom builds to load custom items from the plan file. Either before the document is
+    /// parsed or after.
+    virtual void    preLoadFromJson     (PlanMasterController* pController, QJsonObject& json) { Q_UNUSED(pController); Q_UNUSED(json); }
+    virtual void    postLoadFromJson    (PlanMasterController* pController, QJsonObject& json) { Q_UNUSED(pController); Q_UNUSED(json); }
+
+    /// Returns the url to download the stable version check file. Return QString() to indicate no version check should be performed.
+    /// Default QGC mainline implemenentation returns QGC Stable file location. Default QGC custom build code returns QString().
+    /// Custom builds can override to turn on and provide their own location.
+    /// The contents of this file should be a single line in the form:
+    ///     v3.4.4
+    /// This indicates the latest stable version number.
+    virtual QString stableVersionCheckFileUrl(void) const;
+
+    /// Returns the user visible url to show user where to download new stable builds from.
+    /// Custom builds must override to provide their own location.
+    virtual QString stableDownloadLocation(void) const { return QString("qgroundcontrol.com"); }
+
+    /// Returns the complex mission items to display in the Plan UI
+    ///     @param complexMissionItemNames Default set of complex items
+    /// @return Complex items to be made available to user
+    virtual QStringList complexMissionItemNames(Vehicle* vehicle, const QStringList& complexMissionItemNames) { Q_UNUSED(vehicle); return complexMissionItemNames; }
 
     bool showTouchAreas(void) const { return _showTouchAreas; }
     bool showAdvancedUI(void) const { return _showAdvancedUI; }

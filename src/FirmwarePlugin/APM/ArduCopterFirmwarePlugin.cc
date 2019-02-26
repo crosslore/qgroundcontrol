@@ -41,7 +41,7 @@ APMCopterMode::APMCopterMode(uint32_t mode, bool settable) :
     enumToString.insert(THROW,     "Throw");
     enumToString.insert(AVOID_ADSB,"Avoid ADSB");
     enumToString.insert(GUIDED_NOGPS,"Guided No GPS");
-    enumToString.insert(SAFE_RTL,"Safe RTL");
+    enumToString.insert(SAFE_RTL,"Smart RTL");
 
 
     setEnumToStringMapping(enumToString);
@@ -145,14 +145,32 @@ ArduCopterFirmwarePlugin::ArduCopterFirmwarePlugin(void)
         remapV3_5["SERVO13_REVERSED"] = QStringLiteral("RC13_REVERSED");
         remapV3_5["SERVO14_REVERSED"] = QStringLiteral("RC14_REVERSED");
 
+        remapV3_5["ARMING_VOLT_MIN"] = QStringLiteral("ARMING_MIN_VOLT");
+        remapV3_5["ARMING_VOLT2_MIN"] = QStringLiteral("ARMING_MIN_VOLT2");
+
+        FirmwarePlugin::remapParamNameMap_t& remapV3_6 = _remapParamName[3][6];
+
+        remapV3_6["BATT_AMP_PERVLT"] =  QStringLiteral("BATT_AMP_PERVOL");
+        remapV3_6["BATT2_AMP_PERVLT"] = QStringLiteral("BATT2_AMP_PERVOL");
+        remapV3_6["BATT_LOW_MAH"] =     QStringLiteral("FS_BATT_MAH");
+        remapV3_6["BATT_LOW_VOLT"] =    QStringLiteral("FS_BATT_VOLTAGE");
+        remapV3_6["BATT_FS_LOW_ACT"] =  QStringLiteral("FS_BATT_ENABLE");
+        remapV3_6["PSC_ACCZ_P"] =       QStringLiteral("ACCEL_Z_P");
+        remapV3_6["PSC_ACCZ_I"] =       QStringLiteral("ACCEL_Z_I");
+
+        FirmwarePlugin::remapParamNameMap_t& remapV3_7 = _remapParamName[3][7];
+
+        remapV3_7["BATT_ARM_VOLT"] =    QStringLiteral("ARMING_VOLT_MIN");
+        remapV3_7["BATT2_ARM_VOLT"] =   QStringLiteral("ARMING_VOLT2_MIN");
+
         _remapParamNameIntialized = true;
     }
 }
 
 int ArduCopterFirmwarePlugin::remapParamNameHigestMinorVersionNumber(int majorVersionNumber) const
 {
-    // Remapping supports up to 3.5
-    return majorVersionNumber == 3 ? 5 : Vehicle::versionNotSetValue;
+    // Remapping supports up to 3.7
+    return majorVersionNumber == 3 ? 7 : Vehicle::versionNotSetValue;
 }
 
 void ArduCopterFirmwarePlugin::guidedModeLand(Vehicle* vehicle)
